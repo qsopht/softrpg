@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SoftRPG</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+
+      <!-- Top row: 75% height, split into two equal panels -->
+      <div id="top-row">
+        <div id="panel-left" class="panel">
+          <div class="panel-header">World</div>
+          <div class="panel-body" id="world-view">
+            <div id="world-placeholder">
+              <div id="world-placeholder-icon">⬡</div>
+              <div id="world-placeholder-title">World not yet initialised</div>
+              <div id="world-placeholder-sub">Game world content will render here</div>
+            </div>
+            <div id="character-overlay" class="character-overlay hidden" aria-live="polite"></div>
+            <div id="character-dock" class="character-dock hidden" aria-live="polite">
+              <div class="character-dock-body">
+                <div>
+                  <div class="character-dock-title" id="character-dock-title"></div>
+                  <div class="character-dock-subtitle" id="character-dock-subtitle"></div>
+                </div>
+                <button id="character-dock-open" class="character-action-button" type="button" aria-label="Open character sheet">↥</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="panel-divider"></div>
+        <div id="panel-right" class="panel">
+          <div class="panel-header">World Status</div>
+          <div class="panel-body" id="status-view">
+
+            <div class="stat-grid">
+
+              <div class="stat-card" id="stat-server-health">
+                <div class="stat-label">Server Health</div>
+                <div class="stat-bar-wrap">
+                  <div class="stat-bar" data-key="serverHealth"></div>
+                </div>
+                <div class="stat-footer">
+                  <span class="stat-value" data-key="serverHealth">—</span>
+                  <span class="stat-badge" data-key="serverHealth">—</span>
+                </div>
+              </div>
+
+              <div class="stat-card" id="stat-tech-debt">
+                <div class="stat-label">Technical Debt</div>
+                <div class="stat-bar-wrap">
+                  <div class="stat-bar inverted" data-key="techDebt"></div>
+                </div>
+                <div class="stat-footer">
+                  <span class="stat-value" data-key="techDebt">—</span>
+                  <span class="stat-badge" data-key="techDebt">—</span>
+                </div>
+              </div>
+
+              <div class="stat-card" id="stat-reliability">
+                <div class="stat-label">Reliability</div>
+                <div class="stat-bar-wrap">
+                  <div class="stat-bar" data-key="reliability"></div>
+                </div>
+                <div class="stat-footer">
+                  <span class="stat-value" data-key="reliability">—</span>
+                  <span class="stat-badge" data-key="reliability">—</span>
+                </div>
+              </div>
+
+              <div class="stat-card" id="stat-velocity">
+                <div class="stat-label">Velocity</div>
+                <div class="stat-bar-wrap">
+                  <div class="stat-bar" data-key="velocity"></div>
+                </div>
+                <div class="stat-footer">
+                  <span class="stat-value" data-key="velocity">—</span>
+                  <span class="stat-badge" data-key="velocity">—</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Open Incidents — full width list -->
+            <div class="incidents-section">
+              <div class="incidents-header">
+                <span>Open Incidents</span>
+                <span class="incidents-count" id="incident-count">0</span>
+              </div>
+              <ul class="incident-list" id="incident-list">
+                <li class="incident-empty">No active incidents</li>
+              </ul>
+            </div>
+
+            <!-- Current Crisis -->
+            <div class="tracker-section" id="crisis-section">
+              <div class="tracker-header">
+                <span class="tracker-title">Current Crisis</span>
+                <span class="tracker-status-badge" id="crisis-status-badge">NONE</span>
+              </div>
+              <div class="tracker-body" id="crisis-body">
+                <div class="tracker-name" id="crisis-name">No active crisis</div>
+                <div class="tracker-description" id="crisis-description">Awaiting the first incident.</div>
+                <div class="tracker-bar-row">
+                  <div class="tracker-bar-label">Severity</div>
+                  <div class="stat-bar-wrap tracker-bar-wrap">
+                    <div class="stat-bar" id="crisis-severity-bar"></div>
+                  </div>
+                  <span class="tracker-bar-val" id="crisis-severity-val">—</span>
+                </div>
+                <div class="tracker-bar-row">
+                  <div class="tracker-bar-label">Solved</div>
+                  <div class="stat-bar-wrap tracker-bar-wrap">
+                    <div class="stat-bar" id="crisis-solved-bar"></div>
+                  </div>
+                  <span class="tracker-bar-val" id="crisis-solved-val">0%</span>
+                </div>
+                <div class="tracker-bar-row">
+                  <div class="tracker-bar-label">Time Remaining</div>
+                  <div class="stat-bar-wrap tracker-bar-wrap">
+                    <div class="stat-bar inverted" id="crisis-timer-bar"></div>
+                  </div>
+                  <span class="tracker-bar-val" id="crisis-timer-val">—</span>
+                </div>
+                <div class="tracker-tags" id="crisis-tags"></div>
+              </div>
+            </div>
+
+            <!-- World Boss -->
+            <div class="tracker-section" id="boss-section">
+              <div class="tracker-header">
+                <span class="tracker-title">World Boss</span>
+                <span class="tracker-status-badge" id="boss-status-badge">DORMANT</span>
+              </div>
+              <div class="tracker-body" id="boss-body">
+                <div class="tracker-name" id="boss-name">No active world boss</div>
+                <div class="tracker-bar-row">
+                  <div class="tracker-bar-label">Boss HP</div>
+                  <div class="stat-bar-wrap tracker-bar-wrap">
+                    <div class="stat-bar" id="boss-hp-bar" data-level="ok"></div>
+                  </div>
+                  <span class="tracker-bar-val" id="boss-hp-val">—</span>
+                </div>
+                <div class="tracker-bar-row">
+                  <div class="tracker-bar-label">Rage</div>
+                  <div class="stat-bar-wrap tracker-bar-wrap">
+                    <div class="stat-bar inverted" id="boss-rage-bar"></div>
+                  </div>
+                  <span class="tracker-bar-val" id="boss-rage-val">—</span>
+                </div>
+                <div class="tracker-tags" id="boss-tags"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom row: remaining height, input + live event stream -->
+      <div id="bottom-row">
+        <div id="event-stream" aria-live="polite" aria-atomic="false">
+          <div id="event-log"></div>
+        </div>
+        <div id="input-bar">
+          <input
+            id="cmd-input"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Enter command…"
+            aria-label="Command input"
+          />
+          <button id="cmd-submit" type="button">Send</button>
+        </div>
+      </div>
+
+    </div>
+    <div id="character-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="character-modal-title">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <div id="character-modal-title">Create your character</div>
+            <div class="modal-subtitle">Enter a name and a tech job title to generate your starter profile.</div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <label class="modal-label" for="character-name">Character name</label>
+          <input id="character-name" class="modal-input" type="text" placeholder="Avery, Morgan, Juno..." />
+
+          <label class="modal-label" for="character-job">Tech job title</label>
+          <input id="character-job" class="modal-input" type="text" placeholder="Software engineer, systems architect, cloud reliability lead..." />
+
+          <div id="character-modal-status" class="modal-status" aria-live="polite"></div>
+        </div>
+        <div class="modal-actions">
+          <button id="character-create" class="modal-button" type="button">Create character</button>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
