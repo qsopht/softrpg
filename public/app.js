@@ -19,6 +19,7 @@
   let currentCrisis = null;
   let isCharacterDocked = false;
   let refreshTimer = null;
+  let pendingCommand = null;
 
   // ── Event log helpers ──────────────────────────────────────
   function appendEvent(text, type = '') {
@@ -35,7 +36,12 @@
   sse.addEventListener('message', (e) => {
     try {
       const data = JSON.parse(e.data);
-      appendEvent(data.text ?? e.data, data.type ?? '');
+      const text = data.text ?? e.data;
+      if (pendingCommand && data.type === 'system' && text === `[cmd] ${pendingCommand}`) {
+        pendingCommand = null;
+        return;
+      }
+      appendEvent(text, data.type ?? '');
     } catch {
       appendEvent(e.data);
     }
@@ -49,6 +55,7 @@
   async function sendCommand() {
     const text = input.value.trim();
     if (!text) return;
+    pendingCommand = text;
     appendEvent('> ' + text, 'player');
     input.value = '';
 

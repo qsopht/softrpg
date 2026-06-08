@@ -39,7 +39,6 @@ router.post('/', async (req, res, next) => {
         return res.status(400).json(result);
       }
 
-      broadcast({ text: result.response, type: 'ai' });
       return res.json({
         response: result.response,
         stamina: result.stamina,
