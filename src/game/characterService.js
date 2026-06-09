@@ -36,7 +36,7 @@ function applyStaminaRegen(character) {
   return regenerated;
 }
 
-function createCharacter({ name, jobTitle, accountId = null, profile }) {
+async function createCharacter({ name, jobTitle, accountId = null, profile }) {
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
 
@@ -59,7 +59,7 @@ function createCharacter({ name, jobTitle, accountId = null, profile }) {
     },
     level: 1,
     experience: 0,
-    currentIncident: createRandomIncident(),
+    currentIncident: await createRandomIncident(),
     createdAt: now,
     updatedAt: now,
     meta: {

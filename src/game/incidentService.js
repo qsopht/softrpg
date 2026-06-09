@@ -1,55 +1,50 @@
 const crypto = require('crypto');
+const { chat } = require('../ai');
 
-const INCIDENT_TYPES = [
-  {
-    title: 'Memory leak detected',
-    description: 'A slowly growing memory consumption was detected in the production API server. The application uses more RAM over time.',
-    tags: ['performance', 'debugging', 'memory management'],
-  },
-  {
-    title: 'Database connection pool exhausted',
-    description: 'The application can no longer connect to the database. The connection pool has reached its limit.',
-    tags: ['database', 'infrastructure', 'scaling'],
-  },
-  {
-    title: 'SSL certificate expiration warning',
-    description: 'Your SSL certificate will expire in 7 days. You need to renew it before the deadline.',
-    tags: ['security', 'infrastructure', 'certificates'],
-  },
-  {
-    title: 'Package dependency vulnerability',
-    description: 'A critical security vulnerability was discovered in one of your npm dependencies.',
-    tags: ['security', 'dependencies', 'updates'],
-  },
-  {
-    title: 'API rate limit exceeded',
-    description: 'The external API service has temporarily blocked your requests due to rate limiting.',
-    tags: ['integration', 'api', 'throttling'],
-  },
-  {
-    title: 'Disk space critically low',
-    description: 'The server disk is nearly full. Only 5% free space remains.',
-    tags: ['infrastructure', 'monitoring', 'storage'],
-  },
-  {
-    title: 'Slow database queries',
-    description: 'Several database queries are timing out, causing API endpoints to respond slowly.',
-    tags: ['database', 'performance', 'optimization'],
-  },
-];
+async function createRandomIncident() {
+  const systemPrompt = `You are a generator of realistic technical incidents for software engineers and tech analysts.
+Generate a single incident that a typical tech professional would encounter in their work.
+The incident should be plausible, specific, and solvable.
 
-function createRandomIncident() {
-  const template = INCIDENT_TYPES[Math.floor(Math.random() * INCIDENT_TYPES.length)];
-  const now = new Date().toISOString();
+Respond with ONLY a JSON object (no markdown, no extra text) in this exact format:
+{
+  "title": "Brief incident title (5-10 words)",
+  "description": "1-2 sentence description of what happened and its impact",
+  "tags": ["tag1", "tag2", "tag3"]
+}
 
-  return {
-    id: crypto.randomUUID(),
-    title: template.title,
-    description: template.description,
-    tags: template.tags,
-    status: 'OPEN',
-    createdAt: now,
-  };
+Common incident categories: performance issues, infrastructure failures, security vulnerabilities, integration problems, database issues, deployment issues, monitoring alerts, scaling problems, dependency issues, configuration errors.`;
+
+  const userMessage = 'Generate a realistic technical incident that needs to be resolved.';
+
+  try {
+    const response = await chat(systemPrompt, userMessage);
+    
+    // Parse the JSON response
+    const incident = JSON.parse(response);
+    const now = new Date().toISOString();
+
+    return {
+      id: crypto.randomUUID(),
+      title: incident.title,
+      description: incident.description,
+      tags: incident.tags || [],
+      status: 'OPEN',
+      createdAt: now,
+    };
+  } catch (error) {
+    console.error('Failed to generate incident via AI:', error);
+    // Fallback to a generic incident if AI fails
+    const now = new Date().toISOString();
+    return {
+      id: crypto.randomUUID(),
+      title: 'System Error Detected',
+      description: 'An unexpected error occurred that requires investigation and resolution.',
+      tags: ['error', 'investigation'],
+      status: 'OPEN',
+      createdAt: now,
+    };
+  }
 }
 
 function resolveIncident(characterId) {

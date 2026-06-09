@@ -21,7 +21,7 @@ router.post('/', async (req, res, next) => {
       jobTitle: jobTitle.trim(),
     });
 
-    const character = createCharacter({
+    const character = await createCharacter({
       name: name.trim(),
       jobTitle: jobTitle.trim(),
       accountId: accountId || null,
