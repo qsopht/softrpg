@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { createRandomIncident } = require('./incidentService');
 
 const LOCAL_PLAYER_ID = 'local-player';
 const STAMINA_REGEN_INTERVAL_MS = 10_000; // 1 point every 10 seconds
@@ -50,12 +51,15 @@ function createCharacter({ name, jobTitle, accountId = null, profile }) {
       weaknesses: profile.weaknesses,
     },
     personality: profile.personality,
-    starterEquipment: profile.starterEquipment,
+    starterItems: profile.starterItems,
     stamina: {
       current: 100,
       max: 100,
       lastUpdated: now,
     },
+    level: 1,
+    experience: 0,
+    currentIncident: createRandomIncident(),
     createdAt: now,
     updatedAt: now,
     meta: {

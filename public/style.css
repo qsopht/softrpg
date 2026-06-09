@@ -344,6 +344,26 @@ html, body {
   margin-bottom: 8px;
 }
 
+.experience-section p {
+  margin-bottom: 8px;
+}
+
+.experience-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.experience-bar {
+  height: 100%;
+  background: #ffa500;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
 .stamina-bar-wrap {
   width: 100%;
   height: 8px;

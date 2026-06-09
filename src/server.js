@@ -3,7 +3,12 @@ const config = require('./config');
 const { connect: connectRedis } = require('./cache');
 
 async function start() {
-  await connectRedis();
+  // Try to connect Redis, but don't block if it fails
+  try {
+    await connectRedis();
+  } catch (err) {
+    console.warn('Redis optional setup skipped:', err.message);
+  }
 
   app.listen(config.port, () => {
     console.log(`SoftRPG server running on port ${config.port} [${config.nodeEnv}]`);

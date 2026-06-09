@@ -8,15 +8,31 @@ function extractJsonObject(text) {
   return match[0];
 }
 
+function normalizeItemKey(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
 function parseCharacterProfile(rawResponse) {
   const jsonText = extractJsonObject(rawResponse);
   const parsed = JSON.parse(jsonText);
+
+  // Ensure each item has a valid key based on its name if not provided
+  const starterItems = Array.isArray(parsed.starterItems)
+    ? parsed.starterItems.map((item) => ({
+        key: item.key && typeof item.key === 'string' ? item.key : normalizeItemKey(item.name || ''),
+        name: item.name || '',
+        description: item.description || '',
+      }))
+    : [];
 
   return {
     strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
     weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
     personality: typeof parsed.personality === 'string' ? parsed.personality : '',
-    starterEquipment: Array.isArray(parsed.starterEquipment) ? parsed.starterEquipment : [],
+    starterItems,
   };
 }
 
@@ -32,15 +48,17 @@ Return exactly one JSON object with these fields:
 - strengths: an array of 3 brief strengths.
 - weaknesses: an array of 3 brief weaknesses.
 - personality: a 1-2 sentence character personality description.
-- starterEquipment: an array of 2-3 tech-related starter equipment items. Each item should be an object with name and description.
+- starterItems: an array of exactly 3 tech-related starter items. Each item should be an object with key (based on the item name in lowercase with underscores), name, and description.
 
 Example output:
 {
   "strengths": ["...", "...", "..."],
   "weaknesses": ["...", "...", "..."],
   "personality": "...",
-  "starterEquipment": [
-    {"name": "...", "description": "..."}
+  "starterItems": [
+    {"key": "laptop_debugger", "name": "Laptop Debugger", "description": "..."},
+    {"key": "network_analyzer", "name": "Network Analyzer", "description": "..."},
+    {"key": "docker_container", "name": "Docker Container", "description": "..."}
   ]
 }`;
 

@@ -72,6 +72,19 @@
 
       if (data.stamina && currentCharacter) {
         currentCharacter.stamina = data.stamina;
+      }
+
+      if (data.level !== undefined && currentCharacter) {
+        currentCharacter.level = data.level;
+        currentCharacter.experience = data.experience;
+      }
+
+      if (data.incident !== undefined && currentCharacter) {
+        currentCharacter.currentIncident = data.incident;
+        setIncidents(data.incident);
+      }
+
+      if (currentCharacter && (data.stamina || data.level !== undefined || data.incident !== undefined)) {
         renderCharacterOverlay(currentCharacter);
       }
 
@@ -151,25 +164,42 @@
     renderCharacterDock(character);
     showCharacterOverlay();
 
+    // Display the character's active incident in the right column
+    if (character.currentIncident) {
+      setIncidents(character.currentIncident);
+    }
+
     const strengths = (character.stats?.strengths || []).map((item) => `<li>${item}</li>`).join('');
     const weaknesses = (character.stats?.weaknesses || []).map((item) => `<li>${item}</li>`).join('');
-    const equipment = (character.starterEquipment || []).map((item) => `
-      <li><strong>${item.name}</strong>${item.description ? ` — ${item.description}` : ''}</li>
+    const items = (character.starterItems || []).map((item) => `
+      <li><strong>[${item.key}]</strong> ${item.name}${item.description ? ` — ${item.description}` : ''}</li>
     `).join('');
 
     const staminaCurrent = character.stamina?.current ?? 0;
     const staminaMax = character.stamina?.max ?? 0;
     const staminaPercent = staminaMax ? Math.round((staminaCurrent / staminaMax) * 100) : 0;
 
+    const level = character.level ?? 1;
+    const experience = character.experience ?? 0;
+    const experiencePercent = Math.round((experience / 1000) * 100);
+
     charOverlay.innerHTML = `
       <div class="character-card">
         <div class="character-card-header">
           <div>
             <div class="character-card-title">${character.name}</div>
-            <div class="character-card-subtitle">${character.jobTitle}</div>
+            <div class="character-card-subtitle">${character.jobTitle} • Level ${level}</div>
           </div>
           <div class="character-card-controls">
             <button id="character-overlay-toggle" class="character-action-button" type="button" aria-label="Minimize character sheet">—</button>
+          </div>
+        </div>
+
+        <div class="character-section experience-section">
+          <strong>Experience</strong>
+          <p>${experience}/1000</p>
+          <div class="experience-bar-wrap">
+            <div class="experience-bar" style="width: ${experiencePercent}%;"></div>
           </div>
         </div>
 
@@ -197,8 +227,8 @@
         </div>
 
         <div class="character-section">
-          <strong>Starter equipment</strong>
-          <ul class="character-list">${equipment}</ul>
+          <strong>Starting items</strong>
+          <ul class="character-list">${items}</ul>
         </div>
       </div>
     `;
@@ -344,14 +374,14 @@
     badge.setAttribute('data-level', l);
   }
 
-  function setIncidents(incidents = []) {
+  function setIncidents(incident) {
     const list  = document.getElementById('incident-list');
     const count = document.getElementById('incident-count');
     list.innerHTML = '';
-    count.textContent = incidents.length;
-    count.classList.toggle('has-incidents', incidents.length > 0);
 
-    if (incidents.length === 0) {
+    if (!incident) {
+      count.textContent = '0';
+      count.classList.remove('has-incidents');
       const empty = document.createElement('li');
       empty.className = 'incident-empty';
       empty.textContent = 'No active incidents';
@@ -359,20 +389,28 @@
       return;
     }
 
-    for (const inc of incidents) {
-      const li   = document.createElement('li');
-      li.className = 'incident-item';
-      const sev  = document.createElement('span');
-      sev.className = `incident-sev ${inc.severity || 'p3'}`;
-      const txt  = document.createElement('span');
-      txt.className = 'incident-text';
-      txt.textContent = inc.title;
-      const ts   = document.createElement('span');
-      ts.className = 'incident-ts';
-      ts.textContent = inc.age || '';
-      li.append(sev, txt, ts);
-      list.appendChild(li);
-    }
+    count.textContent = '1';
+    count.classList.add('has-incidents');
+
+    const li = document.createElement('li');
+    li.className = 'incident-item';
+    
+    const sev = document.createElement('span');
+    sev.className = 'incident-sev p3';
+    
+    const txt = document.createElement('span');
+    txt.className = 'incident-text';
+    txt.innerHTML = `<strong>${incident.title}</strong><br><small>${incident.description}</small>`;
+    
+    const hint = document.createElement('div');
+    hint.style.marginTop = '8px';
+    hint.style.fontSize = '12px';
+    hint.style.color = 'var(--text-dim)';
+    hint.innerHTML = 'Use: <code>/incident your solution</code>';
+    
+    li.append(sev, txt);
+    li.appendChild(hint);
+    list.appendChild(li);
   }
 
   // ── Crisis tracker ────────────────────────────────────────
@@ -467,7 +505,6 @@
       if (data.metrics) {
         for (const [key, pct] of Object.entries(data.metrics)) updateMetric(key, pct);
       }
-      if (data.incidents !== undefined) setIncidents(data.incidents);
       if (data.crisis    !== undefined) setCrisis(data.crisis);
       if (data.boss      !== undefined) setBoss(data.boss);
     } catch { /* ignore malformed */ }
@@ -478,7 +515,7 @@
   updateMetric('techDebt',     47);
   updateMetric('reliability',  91);
   updateMetric('velocity',     60);
-  setIncidents([]);
+  setIncidents(null);
   setCrisis(null);
   setBoss(null);
 

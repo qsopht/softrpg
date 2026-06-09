@@ -6,7 +6,7 @@ const router = Router();
 
 function parseActionCommand(command) {
   const normalized = String(command || '').trim();
-  const match = normalized.match(/^\/(action|crisis|boss)(?:\s+(.*))?$/i);
+  const match = normalized.match(/^\/(action|crisis|boss|incident)(?:\s+(.*))?$/i);
   if (!match) return null;
   return {
     type: match[1].toLowerCase(),
@@ -39,14 +39,24 @@ router.post('/', async (req, res, next) => {
         return res.status(400).json(result);
       }
 
-      return res.json({
+      const response = {
         response: result.response,
         stamina: result.stamina,
-        crisis: result.crisis,
+        level: result.level,
+        experience: result.experience,
         cost: result.cost,
         relevance: result.relevance,
-        delta: result.delta,
-      });
+        experienceGained: result.experienceGained,
+        usedItem: result.usedItem,
+      };
+
+      // Include appropriate state based on action type
+      if (result.crisis) response.crisis = result.crisis;
+      if (result.incident !== undefined) response.incident = result.incident;
+      if (result.delta !== undefined) response.delta = result.delta;
+      if (result.incidentResolved !== undefined) response.incidentResolved = result.incidentResolved;
+
+      return res.json(response);
     }
 
     res.json({ response: `Received: ${command}` });

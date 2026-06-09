@@ -2,21 +2,34 @@ const redis = require('redis');
 const config = require('../config');
 
 const client = redis.createClient({ url: config.redisUrl });
+let isConnected = false;
 
-client.on('error', (err) => console.error('Redis client error', err));
+client.on('error', (err) => {
+  if (isConnected) {
+    console.warn('Redis connection lost:', err.message);
+  }
+  // Non-blocking: log but don't crash
+});
+
+client.on('ready', () => {
+  isConnected = true;
+  console.log('Redis connected');
+});
 
 function connect() {
-  return new Promise((resolve, reject) => {
-    if (client.connected) {
-      console.log('Redis connected');
-      return resolve();
-    }
+  // Non-blocking connection attempt
+  // App will start immediately; Redis is optional
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      console.log('Redis connection timeout (optional, app will continue)');
+      resolve();
+    }, 3000);
+
     client.once('ready', () => {
-      console.log('Redis connected');
+      clearTimeout(timeout);
       resolve();
     });
-    client.once('error', reject);
   });
 }
 
-module.exports = { client, connect };
+module.exports = { client, connect, isConnected: () => isConnected };
