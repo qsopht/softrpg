@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { getMetrics } = require('../game/worldStateService');
 
 const router = Router();
 
@@ -20,19 +21,36 @@ router.get('/', (req, res) => {
   const heartbeat = setInterval(() => res.write(': heartbeat\n\n'), 20_000);
 
   clients.add(res);
+
+  // Push current world state so the UI doesn't have to wait for the first change
+  writeEvent(res, 'world-status', { metrics: getMetrics() });
+
   req.on('close', () => {
     clearInterval(heartbeat);
     clients.delete(res);
   });
 });
 
+function writeEvent(res, eventName, payload) {
+  const lines = [];
+  if (eventName) lines.push(`event: ${eventName}`);
+  lines.push(`data: ${JSON.stringify(payload)}`);
+  res.write(lines.join('\n') + '\n\n');
+}
+
 /**
- * Broadcast a message to all connected SSE clients.
+ * Broadcast a message to all connected SSE clients (default `message` event).
  * @param {{ text: string, type?: string }} payload
  */
 function broadcast(payload) {
-  const data = `data: ${JSON.stringify(payload)}\n\n`;
-  for (const client of clients) client.write(data);
+  for (const client of clients) writeEvent(client, null, payload);
 }
 
-module.exports = { router, broadcast };
+/**
+ * Broadcast a named SSE event to all connected clients.
+ */
+function broadcastEvent(eventName, payload) {
+  for (const client of clients) writeEvent(client, eventName, payload);
+}
+
+module.exports = { router, broadcast, broadcastEvent };

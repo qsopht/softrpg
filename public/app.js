@@ -162,7 +162,12 @@
     if (!charOverlay || !character) return;
     currentCharacter = character;
     renderCharacterDock(character);
-    showCharacterOverlay();
+    // Respect the user's current minimized/expanded choice — only force-open
+    // the overlay on the first render. Subsequent refreshes update content
+    // without flipping visibility.
+    if (!isCharacterDocked && charOverlay.classList.contains('hidden')) {
+      showCharacterOverlay();
+    }
 
     // Display the character's active incident in the right column
     if (character.currentIncident) {
@@ -510,10 +515,9 @@
     } catch { /* ignore malformed */ }
   });
 
-  // Seed with placeholder values until the server sends real data
-  updateMetric('serverHealth', 82);
+  // Seed remaining placeholders until the server sends real data
+  // (serverHealth and reliability are pushed by the server on SSE connect)
   updateMetric('techDebt',     47);
-  updateMetric('reliability',  91);
   updateMetric('velocity',     60);
   setIncidents(null);
   setCrisis(null);

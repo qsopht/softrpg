@@ -1,6 +1,13 @@
 const ai = require('../ai');
 const { getCharacter, updateCharacter } = require('./characterService');
 const { getCurrentCrisis, updateCrisis } = require('./crisisService');
+const {
+  onIncidentResolved,
+  onIncidentFailed,
+  onCrisisActionFailed,
+  getMetrics,
+} = require('./worldStateService');
+const { broadcastEvent } = require('../routes/events');
 
 function calculateStaminaCost(text, type) {
   const words = String(text || '').trim().split(/\s+/).filter(Boolean).length;
@@ -104,6 +111,13 @@ async function performAction({ characterId, type, details }) {
   const delta = calculateCrisisDelta(relevance);
   const updatedCrisis = updateCrisis({ percentageSolved: crisis.percentageSolved + delta });
 
+  // A /crisis action with a negative delta means the player made things worse —
+  // reliability takes the hit.
+  if (normalizedType === 'crisis' && delta < 0) {
+    onCrisisActionFailed();
+    broadcastEvent('world-status', { metrics: getMetrics() });
+  }
+
   // Calculate experience based on relevance (0-100 per action, up to 150 with item bonus)
   let experienceGained = Math.round(relevance * 100);
   if (usedItem) {
@@ -202,9 +216,15 @@ async function performIncidentAction({ character, characterId, details }) {
     experience: (character.experience || 0) + experienceGained,
   };
 
-  // Clear incident if resolved
+  // Clear incident if resolved, and bump server health.
+  // On a failed resolution attempt, drop reliability.
   if (incidentResolved) {
     charUpdate.currentIncident = null;
+    onIncidentResolved();
+    broadcastEvent('world-status', { metrics: getMetrics() });
+  } else {
+    onIncidentFailed();
+    broadcastEvent('world-status', { metrics: getMetrics() });
   }
 
   // Level up if experience >= 1000
